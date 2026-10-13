@@ -1,25 +1,45 @@
 import React from 'react'
 
+interface ErrorBoundaryProps {
+  children: React.ReactNode
+  resetKey?: string
+}
+
 interface ErrorBoundaryState {
   hasError: boolean
   error: Error | null
+  resetKey?: string
 }
 
 export class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
+  ErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  constructor(props: { children: React.ReactNode }) {
+  constructor(props: ErrorBoundaryProps) {
     super(props)
-    this.state = { hasError: false, error: null }
+    this.state = { hasError: false, error: null, resetKey: props.resetKey }
+  }
+
+  static getDerivedStateFromProps(
+    props: ErrorBoundaryProps,
+    state: ErrorBoundaryState
+  ): Partial<ErrorBoundaryState> | null {
+    if (props.resetKey !== state.resetKey) {
+      return { hasError: false, error: null, resetKey: props.resetKey }
+    }
+    return null
   }
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error }
   }
 
+  componentDidCatch(error: Error) {
+    console.error('[ErrorBoundary]', error)
+  }
+
   handleReset = () => {
-    this.setState({ hasError: false, error: null })
+    window.location.reload()
   }
 
   render() {
@@ -34,7 +54,7 @@ export class ErrorBoundary extends React.Component<
             </div>
             <h2 className="text-xl font-semibold mb-2">Algo salió mal</h2>
             <p className="text-sm text-muted-foreground mb-2">
-              Ocurrió un error inesperado al renderizar esta página.
+              Ocurrió un error inesperado al renderizar esta página. Recarga para reintentarlo.
             </p>
             {this.state.error && (
               <pre className="text-xs text-left bg-muted p-3 rounded-lg mb-6 overflow-auto max-h-24 text-muted-foreground">
@@ -45,7 +65,7 @@ export class ErrorBoundary extends React.Component<
               onClick={this.handleReset}
               className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Reintentar
+              Recargar la app
             </button>
           </div>
         </div>

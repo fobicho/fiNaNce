@@ -16,7 +16,7 @@ export function Shell({ children }: ShellProps) {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto px-6 py-3 flex flex-col [scrollbar-gutter:stable] [overflow-anchor:none]">
-          <ErrorBoundary key={location.pathname}>
+          <ErrorBoundary resetKey={location.pathname}>
             {children}
           </ErrorBoundary>
         </main>

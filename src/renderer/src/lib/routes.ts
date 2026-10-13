@@ -1,4 +1,4 @@
-import { lazy } from 'react'
+import { lazy, type ComponentType } from 'react'
 
 /**
  * Rutas de la app y sus loaders.
@@ -7,7 +7,48 @@ import { lazy } from 'react'
  * calentarlos por intencion (hover/focus en la nav) en vez de descargar
  * las 9 rutas al arranque.
  */
-export const routes = {
+
+const LOAD_TIMEOUT_MS = 10_000
+const RETRY_DELAY_MS = 300
+
+type RouteLoader = () => Promise<{ default: ComponentType<any> }>
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function withTimeout(path: string, promise: Promise<{ default: ComponentType<any> }>) {
+  return new Promise<{ default: ComponentType<any> }>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timeout de ${LOAD_TIMEOUT_MS}ms cargando ${path}`)),
+      LOAD_TIMEOUT_MS
+    )
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (error) => {
+        clearTimeout(timer)
+        reject(error)
+      }
+    )
+  })
+}
+
+function withRecovery(path: string, load: RouteLoader): RouteLoader {
+  return async () => {
+    try {
+      return await withTimeout(path, load())
+    } catch (firstError) {
+      console.warn(`[routes] No se pudo cargar ${path}, reintentando...`, firstError)
+      await wait(RETRY_DELAY_MS)
+      return withTimeout(path, load())
+    }
+  }
+}
+
+const loaders = {
   '/': () => import('../pages/dashboard').then((m) => ({ default: m.Dashboard })),
   '/transactions': () => import('../pages/transactions').then((m) => ({ default: m.Transactions })),
   '/recurring': () => import('../pages/recurring').then((m) => ({ default: m.Recurring })),
@@ -17,9 +58,13 @@ export const routes = {
   '/goals': () => import('../pages/goals').then((m) => ({ default: m.Goals })),
   '/reports': () => import('../pages/reports').then((m) => ({ default: m.Reports })),
   '/settings': () => import('../pages/settings').then((m) => ({ default: m.Settings }))
-} as const
+} as const satisfies Record<string, RouteLoader>
 
-export type RoutePath = keyof typeof routes
+export type RoutePath = keyof typeof loaders
+
+export const routes = Object.fromEntries(
+  (Object.keys(loaders) as RoutePath[]).map((path) => [path, withRecovery(path, loaders[path])])
+) as Record<RoutePath, RouteLoader>
 
 export const DashboardPage = lazy(routes['/'])
 export const TransactionsPage = lazy(routes['/transactions'])
@@ -49,4 +94,8 @@ export function prefetchRoute(path: RoutePath): Promise<unknown> {
     warmed.delete(path)
     throw e
   })
+}
+
+export function warmRoute(path: RoutePath): void {
+  prefetchRoute(path).catch(() => undefined)
 }

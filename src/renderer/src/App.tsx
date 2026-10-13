@@ -1,5 +1,5 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
-import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Shell } from './components/shell'
 import { Toaster } from './components/ui/toaster'
 import { ErrorBoundary } from './components/error-boundary'
@@ -63,9 +63,11 @@ export default function App() {
     const initialPath = (hashPath in routes ? hashPath : '/') as RoutePath
     let cancelled = false
 
-    prefetchRoute(initialPath).catch(() => undefined).finally(() => {
-      if (!cancelled) setPagesWarm(true)
-    })
+    prefetchRoute(initialPath)
+      .catch((e: unknown) => console.error(`[app] No se pudo precargar ${initialPath}`, e))
+      .finally(() => {
+        if (!cancelled) setPagesWarm(true)
+      })
 
     return () => {
       cancelled = true
@@ -133,33 +135,44 @@ export default function App() {
           <GlobalShortcuts />
           <AiQuickChat />
           <Shell>
-            <Suspense
-              fallback={
-                <div className="flex min-h-[320px] flex-1 items-center justify-center rounded-2xl bg-muted/20" aria-live="polite">
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
-                    Cargando página…
-                  </div>
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/transactions" element={<TransactionsPage />} />
-                <Route path="/recurring" element={<RecurringPage />} />
-                <Route path="/accounts" element={<AccountsPage />} />
-                <Route path="/budgets" element={<BudgetsPage />} />
-                <Route path="/categories" element={<CategoriesPage />} />
-                <Route path="/goals" element={<GoalsPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+            <Suspense fallback={<PageLoading />}>
+              <DeferredRoutes />
             </Suspense>
           </Shell>
         </ErrorBoundary>
       </HashRouter>
     </>
+  )
+}
+
+function DeferredRoutes() {
+  const location = useLocation()
+  const deferredLocation = useDeferredValue(location)
+
+  return (
+    <Routes location={deferredLocation}>
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="/transactions" element={<TransactionsPage />} />
+      <Route path="/recurring" element={<RecurringPage />} />
+      <Route path="/accounts" element={<AccountsPage />} />
+      <Route path="/budgets" element={<BudgetsPage />} />
+      <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/goals" element={<GoalsPage />} />
+      <Route path="/reports" element={<ReportsPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+function PageLoading() {
+  return (
+    <div className="flex min-h-[320px] flex-1 items-center justify-center rounded-2xl bg-muted/20" aria-live="polite">
+      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
+        Cargando página…
+      </div>
+    </div>
   )
 }
 

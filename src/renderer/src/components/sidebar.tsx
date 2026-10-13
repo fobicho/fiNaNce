@@ -5,7 +5,7 @@ import {
   Settings, ChevronsRight, Landmark, Repeat, Target, BarChart3
 } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { prefetchRoute, type RoutePath } from '../lib/routes'
+import { warmRoute, type RoutePath } from '../lib/routes'
 import { SIDEBAR_WIDTH } from '../lib/sidebar-width'
 import { useThemeStore } from '../stores/theme-store'
 import { HelpButton } from './help-button'
@@ -79,8 +79,8 @@ export function Sidebar() {
             <NavLink
               key={item.to}
               to={item.to}
-              onMouseEnter={() => prefetchRoute(item.to).catch(() => undefined)}
-              onFocus={() => prefetchRoute(item.to).catch(() => undefined)}
+              onMouseEnter={() => warmRoute(item.to)}
+              onFocus={() => warmRoute(item.to)}
             >
               <div
                 className={cn(
