@@ -8,6 +8,7 @@ import { cn } from '../lib/utils'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { TypewriterText, TypingDots } from './chat-typing'
+import { QUICK_CHAT_EVENT } from './ai-quick-chat'
 
 export function AiChat() {
   const { messages, processing, config, pendingAction, sendMessage, confirmPendingAction, cancelPendingAction, clearMessages } = useAiStore()
@@ -31,10 +32,19 @@ export function AiChat() {
   }, [open])
 
   useEffect(() => {
+    function close() {
+      setOpen(false)
+    }
+    window.addEventListener(QUICK_CHAT_EVENT, close)
+    return () => window.removeEventListener(QUICK_CHAT_EVENT, close)
+  }, [])
+
+
+  useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
-  }, [messages])
+  }, [messages, open])
 
   useEffect(() => {
     if (prevProcessing.current && !processing) {

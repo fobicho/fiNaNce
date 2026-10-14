@@ -424,29 +424,6 @@ export function Settings() {
                       </>
                     )}
 
-                    {aiConfig.provider === 'tokenharbor' && (
-                      <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-2">
-                        <p>
-                          1. Crea tu API key en{' '}
-                          <a href="https://tokenharbor.ai/dashboard" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                            tokenharbor.ai/dashboard
-                          </a>{' '}
-                          (formato <span className="font-mono text-xs">thk_live_...</span>)
-                        </p>
-                        <p>
-                          2. Elige el modelo en el{' '}
-                          <a href="https://tokenharbor.ai/models" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                            catálogo
-                          </a>{' '}
-                          y pega su id en «Modelo»
-                        </p>
-                        <p>
-                          3. La API es compatible con OpenAI en{' '}
-                          <span className="font-mono text-xs">https://tokenharbor.ai/v1</span>
-                        </p>
-                      </div>
-                    )}
-
                     {aiConfig.provider === 'ollama' && (
                       <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-2">
                         <p>
@@ -558,14 +535,14 @@ function Row({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-4 border-b border-border first:pt-0">
-      <div className="min-w-0 flex flex-col">
+    <div className="flex items-center justify-between gap-4 py-4 border-b border-border first:pt-0">
+      <div className="min-w-0 flex flex-col justify-center min-h-10">
         <p className="text-sm font-medium leading-tight">{label}</p>
         {description && (
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{description}</p>
         )}
       </div>
-      <div className="shrink-0 self-start">{children}</div>
+      <div className="shrink-0">{children}</div>
     </div>
   )
 }

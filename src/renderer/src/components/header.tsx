@@ -111,10 +111,10 @@ function WindowControls() {
   }, [])
 
   const btn =
-    'grid place-items-center h-9 w-11 rounded-lg text-muted-foreground transition-colors'
+    'grid h-14 w-12 place-items-center text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground active:bg-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
 
   return (
-    <div className="flex items-center gap-0.5 -mr-6">
+    <div className="flex h-14 -mr-6">
       <button type="button" className={btn} aria-label="Minimizar" onClick={() => window.api.windowMinimize()}>
         <Minus className="w-4 h-4" />
       </button>
@@ -124,11 +124,11 @@ function WindowControls() {
         aria-label={maximized ? 'Restaurar' : 'Maximizar'}
         onClick={() => window.api.windowToggleMaximize()}
       >
-        {maximized ? <Copy className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+        {maximized ? <Copy className="w-4 h-4" /> : <Square className="w-4 h-4" />}
       </button>
       <button
         type="button"
-        className={`${btn} hover:bg-destructive hover:text-destructive-foreground`}
+        className={`${btn} hover:bg-destructive hover:text-destructive-foreground active:bg-destructive/90`}
         aria-label="Cerrar"
         onClick={() => window.api.windowClose()}
       >

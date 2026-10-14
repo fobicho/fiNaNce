@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AiChat } from './ai-chat'
+import { QUICK_CHAT_EVENT } from './ai-quick-chat'
 import { useAiStore } from '../stores/ai-store'
 import { useThemeStore } from '../stores/theme-store'
 import type { AiConfig } from '../lib/ai/types'
@@ -92,5 +93,35 @@ describe('AiChat', () => {
 
     fireEvent.click(screen.getByLabelText('Cerrar asistente'))
     await waitFor(() => expect(screen.queryByText('NaNbot')).not.toBeInTheDocument())
+  })
+
+  it('se cierra cuando se abre el chat rápido', async () => {
+    render(<AiChat />)
+    fireEvent.click(screen.getByLabelText('Abrir asistente IA'))
+    expect(screen.getByText('NaNbot')).toBeInTheDocument()
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent(QUICK_CHAT_EVENT))
+    })
+
+    await waitFor(() => expect(screen.queryByText('NaNbot')).not.toBeInTheDocument())
+  })
+
+  it('abre la conversación desplazada al final', () => {
+    const scrolls: number[] = []
+    const proto = Element.prototype
+    const top = Object.getOwnPropertyDescriptor(proto, 'scrollTop')
+    const height = Object.getOwnPropertyDescriptor(proto, 'scrollHeight')
+    Object.defineProperty(proto, 'scrollTop', { configurable: true, get: () => 0, set: (v: number) => scrolls.push(v) })
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => 900 })
+
+    try {
+      render(<AiChat />)
+      fireEvent.click(screen.getByLabelText('Abrir asistente IA'))
+      expect(scrolls).toContain(900)
+    } finally {
+      Object.defineProperty(proto, 'scrollTop', top!)
+      Object.defineProperty(proto, 'scrollHeight', height!)
+    }
   })
 })
